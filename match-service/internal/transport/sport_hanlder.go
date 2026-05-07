@@ -63,7 +63,7 @@ func (s *SportHandler) Update(ctx *gin.Context) {
 
 	if err := s.sportService.Update(uint(id), req.Name); err != nil {
 		if errors.Is(err, service.ErrNotFound) {
-			ctx.JSON(http.StatusNotFound, gin.H{"err": service.ErrNotFound})
+			ctx.JSON(http.StatusNotFound, gin.H{"err": service.ErrNotFound.Error()})
 		} else {
 			ctx.JSON(http.StatusBadRequest, gin.H{"err": err.Error()})
 		}
@@ -101,7 +101,7 @@ func (s *SportHandler) Delete(ctx *gin.Context) {
 	if err := s.sportService.Delete(uint(id)); err != nil {
 
 		if errors.Is(err, service.ErrNotFound) {
-			ctx.JSON(http.StatusNotFound, gin.H{"err": service.ErrNotFound})
+			ctx.JSON(http.StatusNotFound, gin.H{"err": service.ErrNotFound.Error()})
 		} else {
 			ctx.JSON(http.StatusBadRequest, gin.H{"err": err.Error()})
 		}
