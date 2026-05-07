@@ -57,17 +57,16 @@ func (s *SportHandler) Update(ctx *gin.Context) {
 		return
 	}
 	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"err": err.Error()})
+		return
+	}
 
+	if err := s.sportService.Update(uint(id), req.Name); err != nil {
 		if errors.Is(err, service.ErrNotFound) {
 			ctx.JSON(http.StatusNotFound, gin.H{"err": service.ErrNotFound})
 		} else {
 			ctx.JSON(http.StatusBadRequest, gin.H{"err": err.Error()})
 		}
-		return
-	}
-
-	if err := s.sportService.Update(uint(id), req.Name); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"err": err.Error()})
 		return
 	}
 
