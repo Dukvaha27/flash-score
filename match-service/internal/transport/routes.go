@@ -9,9 +9,9 @@ func RegisterRoutes(router *gin.Engine, sportHandler *SportHandler) {
 
 	{
 		sport.GET("", sportHandler.GetList)
-		sport.GET(":id", sportHandler.GetById)
-		sport.DELETE(":id", sportHandler.Delete)
+		sport.GET("/:id", sportHandler.GetById)
+		sport.DELETE("/:id", sportHandler.Delete)
 		sport.POST("", sportHandler.Create)
-		sport.PATCH(":id", sportHandler.Update)
+		sport.PATCH("/:id", sportHandler.Update)
 	}
 }

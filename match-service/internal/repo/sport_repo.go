@@ -6,10 +6,10 @@ import (
 )
 
 type SportRepo interface {
-	Create(sport *models.Sport) error
+	Create(sport *models.Sport) (*models.Sport, error)
 	Delete(id uint) error
 	Update(sport *models.Sport) error
-	GetList() (*[]models.Sport, error)
+	GetList() ([]models.Sport, error)
 	GetById(id uint) (*models.Sport, error)
 }
 
@@ -23,8 +23,11 @@ func NewSportRepo(db *gorm.DB) SportRepo {
 	}
 }
 
-func (s *gormSportRepo) Create(sport *models.Sport) error {
-	return s.db.Create(&sport).Error
+func (s *gormSportRepo) Create(sport *models.Sport) (*models.Sport, error) {
+	if err := s.db.Create(&sport).Error; err != nil {
+		return nil, err
+	}
+	return sport, nil
 }
 
 func (s *gormSportRepo) Delete(id uint) error {
@@ -45,12 +48,12 @@ func (s *gormSportRepo) GetById(id uint) (*models.Sport, error) {
 	return &sport, nil
 }
 
-func (s *gormSportRepo) GetList() (*[]models.Sport, error) {
+func (s *gormSportRepo) GetList() ([]models.Sport, error) {
 	sports := []models.Sport{}
 
 	if err := s.db.Find(&sports).Error; err != nil {
 		return nil, err
 	}
 
-	return &sports, nil
+	return sports, nil
 }

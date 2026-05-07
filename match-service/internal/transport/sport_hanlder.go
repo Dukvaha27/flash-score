@@ -1,6 +1,7 @@
 package transport
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -28,7 +29,7 @@ func (s *SportHandler) GetById(ctx *gin.Context) {
 	sport, err := s.sportService.GetById(uint(id))
 
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"err": err.Error()})
+		ctx.JSON(http.StatusNotFound, gin.H{"err": err.Error()})
 		return
 	}
 
@@ -56,7 +57,12 @@ func (s *SportHandler) Update(ctx *gin.Context) {
 		return
 	}
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"err": err.Error()})
+
+		if errors.Is(err, service.ErrNotFound) {
+			ctx.JSON(http.StatusNotFound, gin.H{"err": service.ErrNotFound})
+		} else {
+			ctx.JSON(http.StatusBadRequest, gin.H{"err": err.Error()})
+		}
 		return
 	}
 
@@ -76,12 +82,13 @@ func (s *SportHandler) Create(ctx *gin.Context) {
 		return
 	}
 
-	if err := s.sportService.Create(req.Name); err != nil {
+	sport, err := s.sportService.Create(req.Name)
+	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"err": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, "ok")
+	ctx.JSON(http.StatusCreated, gin.H{"data": sport})
 }
 
 func (s *SportHandler) Delete(ctx *gin.Context) {
@@ -93,7 +100,12 @@ func (s *SportHandler) Delete(ctx *gin.Context) {
 	}
 
 	if err := s.sportService.Delete(uint(id)); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"err": err.Error()})
+
+		if errors.Is(err, service.ErrNotFound) {
+			ctx.JSON(http.StatusNotFound, gin.H{"err": service.ErrNotFound})
+		} else {
+			ctx.JSON(http.StatusBadRequest, gin.H{"err": err.Error()})
+		}
 		return
 	}
 
