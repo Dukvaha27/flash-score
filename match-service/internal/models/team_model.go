@@ -8,7 +8,7 @@ type Team struct {
 	ShortName string `json:"short_name" binding:"required"`
 	City      string `json:"city" binding:"required"`
 	SportID   uint   `json:"sport_id" binding:"required"`
-	Sport     Sport  `json:"-"`
+	Sport     Sport  `json:"-" gorm:"foreignKey:SportID"`
 }
 
 type TeamCreate struct {

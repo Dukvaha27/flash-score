@@ -20,7 +20,7 @@ func main() {
 
 	teamRepo := repo.NewTeamRepo(db)
 	teamService := service.NewTeamService(teamRepo, sportRepo)
-	teamHandler := transport.NewTeamService(teamService)
+	teamHandler := transport.NewTeamHandler(teamService)
 
 	transport.RegisterRoutes(router, sportHandler, teamHandler)
 	router.Run(":8000")

@@ -10,8 +10,8 @@ type TeamRepo interface {
 	GetBySport(sportId uint) ([]models.Team, error)
 	GetList() ([]models.Team, error)
 	Create(team models.Team) (*models.Team, error)
-	Update(team models.Team) error
-	Delete(id uint) error
+	Update(team *models.Team) error
+	HardDelete(id uint) error
 }
 
 type gormTeamRepo struct {
@@ -57,10 +57,10 @@ func (t *gormTeamRepo) Create(team models.Team) (*models.Team, error) {
 	return &team, nil
 }
 
-func (t *gormTeamRepo) Update(team models.Team) error {
+func (t *gormTeamRepo) Update(team *models.Team) error {
 	return t.db.Save(team).Error
 }
 
-func (t *gormTeamRepo) Delete(id uint) error {
-	return t.db.Unscoped().Delete(models.Team{}, id).Error
+func (t *gormTeamRepo) HardDelete(id uint) error {
+	return t.db.Unscoped().Delete(&models.Team{}, id).Error
 }

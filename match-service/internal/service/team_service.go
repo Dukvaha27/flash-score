@@ -11,7 +11,7 @@ type TeamService interface {
 	GetList() ([]models.Team, error)
 	Create(team models.TeamCreate) (*models.Team, error)
 	Update(id uint, team models.TeamUpdate) error
-	Delete(id uint) error
+	HardDelete(id uint) error
 }
 
 type teamService struct {
@@ -54,22 +54,22 @@ func (t *teamService) Create(team models.TeamCreate) (*models.Team, error) {
 
 func (t *teamService) Update(id uint, team models.TeamUpdate) error {
 
-	req, err := t.GetById(id)
+	existingTeam, err := t.GetById(id)
 
 	if err != nil {
 		return ErrNotFound
 	}
 
 	if team.Name != nil {
-		req.Name = *team.Name
+		existingTeam.Name = *team.Name
 	}
 
 	if team.ShortName != nil {
-		req.ShortName = *team.ShortName
+		existingTeam.ShortName = *team.ShortName
 	}
 
 	if team.City != nil {
-		req.City = *team.City
+		existingTeam.City = *team.City
 	}
 
 	if team.SportID != nil {
@@ -77,17 +77,17 @@ func (t *teamService) Update(id uint, team models.TeamUpdate) error {
 			return ErrNotFound
 		}
 
-		req.SportID = *team.SportID
+		existingTeam.SportID = *team.SportID
 	}
 
-	return t.teamRepo.Update(*req)
+	return t.teamRepo.Update(existingTeam)
 }
 
-func (t *teamService) Delete(id uint) error {
+func (t *teamService) HardDelete(id uint) error {
 
 	if _, err := t.GetById(id); err != nil {
 		return ErrNotFound
 	}
 
-	return t.teamRepo.Delete(id)
+	return t.teamRepo.HardDelete(id)
 }

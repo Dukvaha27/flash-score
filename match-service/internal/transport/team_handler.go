@@ -14,7 +14,7 @@ type TeamHandler struct {
 	teamService service.TeamService
 }
 
-func NewTeamService(service service.TeamService) *TeamHandler {
+func NewTeamHandler(service service.TeamService) *TeamHandler {
 	return &TeamHandler{teamService: service}
 }
 
@@ -120,7 +120,7 @@ func (t *TeamHandler) Delete(ctx *gin.Context) {
 		return
 	}
 
-	if err := t.teamService.Delete(uint(id)); err != nil {
+	if err := t.teamService.HardDelete(uint(id)); err != nil {
 		if errors.Is(err, service.ErrNotFound) {
 			ctx.JSON(http.StatusNotFound, gin.H{"err": service.ErrNotFound.Error()})
 		} else {
