@@ -12,12 +12,16 @@ import (
 func main() {
 	router := gin.Default()
 	db := config.SetupDatabase()
-	db.AutoMigrate(&models.Sport{})
+	db.AutoMigrate(&models.Sport{}, &models.Team{})
 
 	sportRepo := repo.NewSportRepo(db)
 	sportService := service.NewSportService(sportRepo)
 	sportHandler := transport.NewSportHandler(sportService)
 
-	transport.RegisterRoutes(router, sportHandler)
+	teamRepo := repo.NewTeamRepo(db)
+	teamService := service.NewTeamService(teamRepo, sportRepo)
+	teamHandler := transport.NewTeamService(teamService)
+
+	transport.RegisterRoutes(router, sportHandler, teamHandler)
 	router.Run(":8000")
 }
