@@ -4,17 +4,18 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 
-	"github.com/Dukvaha27/flash-score/notification-service/internal/config"
+	"github.com/Dukvaha27/flash-score/gateway/internal/config"
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis"
+	"github.com/redis/go-redis/v9"
 )
 
 func main() {
-	db := config.SetUpDatebaseConnection()
+	db := config.SetUpDatabaseConnection()
 
 	rdb := redis.NewClient(&redis.Options{
-		Addr: "localhost:6379",
+		Addr: os.Getenv("GATEWAY_REDIS_URL"),
 	})
 
 	defer rdb.Close()
@@ -24,7 +25,7 @@ func main() {
 	pong, err := rdb.Ping(ctx).Result()
 
 	if err != nil {
-		log.Fatalf("Не удалось подключиться к Redis:", err)
+		log.Fatalf("Не удалось подключиться к Redis: %v", err)
 	}
 
 	fmt.Println("Redis подключён", pong)
@@ -32,10 +33,6 @@ func main() {
 	if err := db.AutoMigrate(); err != nil {
 		log.Fatalf("не удалось выполнить миграции: %v", err)
 	}
-
-	// ============ Инициализация ============
-
-	// ============ GIN ============
 
 	router := gin.Default()
 

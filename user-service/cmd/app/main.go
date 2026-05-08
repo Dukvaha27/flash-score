@@ -4,17 +4,22 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 
-	"github.com/Dukvaha27/flash-score/notification-service/internal/config"
+	"github.com/Dukvaha27/flash-score/user-service/internal/config"
+	"github.com/Dukvaha27/flash-score/user-service/internal/models"
+	"github.com/Dukvaha27/flash-score/user-service/internal/repository"
+	"github.com/Dukvaha27/flash-score/user-service/internal/service"
+	"github.com/Dukvaha27/flash-score/user-service/internal/transport"
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis"
+	"github.com/redis/go-redis/v9"
 )
 
 func main() {
-	db := config.SetUpDatebaseConnection()
+	db := config.SetUpDatabaseConnection()
 
 	rdb := redis.NewClient(&redis.Options{
-		Addr: "localhost:6379",
+		Addr: os.Getenv("GATEWAY_REDIS_URL"),
 	})
 
 	defer rdb.Close()
@@ -24,20 +29,21 @@ func main() {
 	pong, err := rdb.Ping(ctx).Result()
 
 	if err != nil {
-		log.Fatalf("Не удалось подключиться к Redis:", err)
+		log.Fatalf("Не удалось подключиться к Redis: %v", err)
 	}
 
 	fmt.Println("Redis подключён", pong)
 
-	if err := db.AutoMigrate(); err != nil {
+	if err := db.AutoMigrate(models.User{}); err != nil {
 		log.Fatalf("не удалось выполнить миграции: %v", err)
 	}
 
-	// ============ Инициализация ============
-
-	// ============ GIN ============
-
 	router := gin.Default()
+	userRepo := repository.NewUserRepository(db)
+
+	userService := service.NewUserService(userRepo)
+
+	transport.RegisterRoutes(router, userService)
 
 	if err := router.Run(); err != nil {
 		log.Fatalf("не удалось запустить HTTP-сервер: %v", err)
