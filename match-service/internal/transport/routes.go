@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterRoutes(router *gin.Engine, sportHandler *SportHandler, teamHandler *TeamHandler) {
+func RegisterRoutes(router *gin.Engine, sportHandler *SportHandler, teamHandler *TeamHandler, playerHandler *PlayerHandler) {
 	sport := router.Group("/sport")
 
 	{
@@ -24,5 +24,16 @@ func RegisterRoutes(router *gin.Engine, sportHandler *SportHandler, teamHandler 
 		team.POST("", teamHandler.Create)
 		team.PATCH("/:id", teamHandler.Update)
 		team.DELETE("/:id", teamHandler.Delete)
+	}
+
+	player := router.Group("/player")
+
+	{
+		player.GET("", playerHandler.GetList)
+		player.GET("/:id", playerHandler.GetById)
+		player.GET("/team/:id", playerHandler.GetByTeam)
+		player.POST("", playerHandler.Create)
+		player.PATCH("/:id", playerHandler.Update)
+		player.DELETE("/:id", playerHandler.Delete)
 	}
 }
