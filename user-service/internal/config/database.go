@@ -1,4 +1,4 @@
-package config  
+package config
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func SetUoDatebaseConnection() *gorm.DB {
+func SetUpDatabaseConnection() *gorm.DB {
 	if err := godotenv.Load("../../.env"); err != nil {
 		panic(err)
 	}
@@ -21,14 +21,14 @@ func SetUoDatebaseConnection() *gorm.DB {
 	dbPort := os.Getenv("DB_PORT")
 
 	dsn := fmt.Sprintf("host=%v user=%v password=%v dbname=%v port=%v", dbHost, dbUser, dbPass, dbName, dbPort)
-	 
-	db ,err := gorm.Open(postgres.New(postgres.Config{
-		DSN: dsn,
+
+	db, err := gorm.Open(postgres.New(postgres.Config{
+		DSN:                  dsn,
 		PreferSimpleProtocol: true,
 	}), &gorm.Config{})
 
-		if err !=nil{
-			panic(err)
-		}
-return db
+	if err != nil {
+		panic(err)
+	}
+	return db
 }
