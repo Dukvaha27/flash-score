@@ -31,12 +31,16 @@ func NewCommentaryService(
 	db *gorm.DB,
 	commentaryRepo repositories.CommentaryRepository,
 	matchClient MatchClient,
-) CommentaryService {
+) (CommentaryService, error) {
+	if matchClient == nil {
+		return nil, ErrMatchClientNotConfigured
+	}
+
 	return &commentaryService{
 		db:             db,
 		commentaryRepo: commentaryRepo,
 		matchClient:    matchClient,
-	}
+	}, nil
 }
 
 func (s *commentaryService) Create(

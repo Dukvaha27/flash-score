@@ -22,23 +22,17 @@ func main() {
 		log.Fatalf("не удалось выполнить миграции: %v", err)
 	}
 
-	// ============ Инициализация ============
+	// ============ Repositories ============
 
 	matchEventRepo := repositories.NewMatchEventRepository(db)
 	commentaryRepo := repositories.NewCommentaryRepository(db)
 	commentRepo := repositories.NewCommentRepository(db)
 	reactionRepo := repositories.NewReactionRepository(db)
 
-	matchEventService := services.NewMatchEventService(
-		matchEventRepo,
-		nil,
-	)
-
-	commentaryService := services.NewCommentaryService(
-		db,
-		commentaryRepo,
-		nil,
-	)
+	// ============ Services ============
+	// MatchEventService и CommentaryService пока не создаём,
+	// потому что для них нужен реальный MatchClient.
+	// Их нужно будет подключить после реализации internal/clients/match_client.go.
 
 	commentService := services.NewCommentService(
 		commentRepo,
@@ -58,18 +52,15 @@ func main() {
 	)
 
 	// TODO: pass services to HTTP handlers after handlers are implemented
-	_ = matchEventService
-	_ = commentaryService
 	_ = commentService
 	_ = reactionService
 	_ = timelineService
 
-	// ============ GIN ============
+	// ============ Gin ============
 
 	router := gin.Default()
 
-	if err := router.Run(); err != nil {
+	if err := router.Run(":8080"); err != nil {
 		log.Fatalf("не удалось запустить HTTP-сервер: %v", err)
 	}
-
 }

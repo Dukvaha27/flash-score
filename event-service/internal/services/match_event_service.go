@@ -24,11 +24,15 @@ type matchEventService struct {
 func NewMatchEventService(
 	eventRepo repositories.MatchEventRepository,
 	matchClient MatchClient,
-) MatchEventService {
+) (MatchEventService, error) {
+	if matchClient == nil {
+		return nil, ErrMatchClientNotConfigured
+	}
+
 	return &matchEventService{
 		eventRepo:   eventRepo,
 		matchClient: matchClient,
-	}
+	}, nil
 }
 
 func (s *matchEventService) Create(ctx context.Context, req dto.CreateEventRequest, userID uint, role string) (*models.MatchEvent, error) {
