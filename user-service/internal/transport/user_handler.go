@@ -16,11 +16,11 @@ func NewUserHandler(userService service.UserService) UserHandler {
 	return UserHandler{service: userService}
 }
 
-func (h *UserHandler) RegisterRoutes(r *gin.RouterGroup) {
-	r.POST("/register", h.Register)
-	r.POST("/login", h.Login)
+func (h *UserHandler) RegisterRoutes(authorized *gin.RouterGroup, unauthorized *gin.RouterGroup) {
+	unauthorized.POST("/register", h.Register)
+	unauthorized.POST("/login", h.Login)
 
-	users := r.Group("/users")
+	users := authorized.Group("/users")
 	{
 		users.GET("/me", h.GetByID)
 		users.PATCH("/me", h.Update)
