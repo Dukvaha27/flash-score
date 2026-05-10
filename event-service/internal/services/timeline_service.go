@@ -1,6 +1,7 @@
 package services
 
 import (
+	"sort"
 	"time"
 
 	"github.com/Dukvaha27/flash-score/event-service/internal/dto"
@@ -71,25 +72,13 @@ func (s *timelineService) GetByMatchID(matchID uint) ([]dto.TimelineItemResponse
 		})
 	}
 
-	sortTimelineItems(items)
+	sort.Slice(items, func(i, j int) bool {
+		if items[i].Minute != items[j].Minute {
+			return items[i].Minute < items[j].Minute
+		}
+
+		return items[i].CreatedAt < items[j].CreatedAt
+	})
 
 	return items, nil
-}
-
-func sortTimelineItems(items []dto.TimelineItemResponse) {
-	for i := 0; i < len(items)-1; i++ {
-		for j := i + 1; j < len(items); j++ {
-			if shouldSwapTimelineItems(items[i], items[j]) {
-				items[i], items[j] = items[j], items[i]
-			}
-		}
-	}
-}
-
-func shouldSwapTimelineItems(a, b dto.TimelineItemResponse) bool {
-	if a.Minute != b.Minute {
-		return a.Minute > b.Minute
-	}
-
-	return a.CreatedAt > b.CreatedAt
 }

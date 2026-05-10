@@ -81,7 +81,11 @@ func (s *commentaryService) Create(
 			return err
 		}
 
-		return repo.Pin(commentary.ID)
+		if err := repo.UnpinAllByMatchID(commentary.MatchID); err != nil {
+			return err
+		}
+
+		return repo.SetPinned(commentary.ID, true)
 	})
 
 	if err != nil {
@@ -149,7 +153,16 @@ func (s *commentaryService) Pin(id uint, role string) error {
 	return s.db.Transaction(func(tx *gorm.DB) error {
 		repo := s.commentaryRepo.WithDB(tx)
 
-		return repo.Pin(id)
+		commentary, err := repo.GetByID(id)
+		if err != nil {
+			return err
+		}
+
+		if err := repo.UnpinAllByMatchID(commentary.MatchID); err != nil {
+			return err
+		}
+
+		return repo.SetPinned(id, true)
 	})
 }
 
@@ -158,5 +171,5 @@ func (s *commentaryService) Unpin(id uint, role string) error {
 		return ErrForbidden
 	}
 
-	return s.commentaryRepo.Unpin(id)
+	return s.commentaryRepo.SetPinned(id, false)
 }

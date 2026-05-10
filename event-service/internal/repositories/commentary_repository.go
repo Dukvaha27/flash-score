@@ -13,8 +13,8 @@ type CommentaryRepository interface {
 
 	ListByMatchID(matchID uint) ([]models.Commentary, error)
 
-	Pin(id uint) error
-	Unpin(id uint) error
+	UnpinAllByMatchID(matchID uint) error
+	SetPinned(id uint, isPinned bool) error
 
 	WithDB(db *gorm.DB) CommentaryRepository
 }
@@ -94,38 +94,16 @@ func (r *commentaryRepository) ListByMatchID(matchID uint) ([]models.Commentary,
 	return commentaries, err
 }
 
-func (r *commentaryRepository) Pin(id uint) error {
-	var commentary models.Commentary
-
-	if err := r.db.First(&commentary, id).Error; err != nil {
-		return err
-	}
-
-	if err := r.db.Model(&models.Commentary{}).
-		Where("match_id = ?", commentary.MatchID).
-		Update("is_pinned", false).Error; err != nil {
-		return err
-	}
-
-	result := r.db.Model(&models.Commentary{}).
-		Where("id = ?", id).
-		Update("is_pinned", true)
-
-	if result.Error != nil {
-		return result.Error
-	}
-
-	if result.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
-	}
-
-	return nil
+func (r *commentaryRepository) UnpinAllByMatchID(matchID uint) error {
+	return r.db.Model(&models.Commentary{}).
+		Where("match_id = ?", matchID).
+		Update("is_pinned", false).Error
 }
 
-func (r *commentaryRepository) Unpin(id uint) error {
+func (r *commentaryRepository) SetPinned(id uint, isPinned bool) error {
 	result := r.db.Model(&models.Commentary{}).
 		Where("id = ?", id).
-		Update("is_pinned", false)
+		Update("is_pinned", isPinned)
 
 	if result.Error != nil {
 		return result.Error

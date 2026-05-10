@@ -57,6 +57,7 @@ func main() {
 		commentaryRepo,
 	)
 
+	// TODO: pass services to HTTP handlers after handlers are implemented
 	_ = matchEventService
 	_ = commentaryService
 	_ = commentService
