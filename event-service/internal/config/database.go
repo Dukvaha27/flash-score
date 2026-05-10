@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -9,9 +10,9 @@ import (
 	"gorm.io/gorm"
 )
 
-func SetUpDatebaseConnection() *gorm.DB {
-	if err := godotenv.Load("../../.env"); err != nil {
-		panic(err)
+func SetUpDatabaseConnection() *gorm.DB {
+	if err := godotenv.Load(); err != nil {
+		log.Println("Warning: .env file not found, using environment variables")
 	}
 	dbUser := os.Getenv("DB_USER")
 	dbPass := os.Getenv("DB_PASS")
@@ -19,7 +20,11 @@ func SetUpDatebaseConnection() *gorm.DB {
 	dbName := os.Getenv("DB_NAME")
 	dbPort := os.Getenv("DB_PORT")
 
-	dsn := fmt.Sprintf("host=%v user=%v password=%v dbname=%v port=%v", dbHost, dbUser, dbPass, dbName, dbPort)
+	if dbUser == "" || dbHost == "" || dbName == "" || dbPort == "" {
+		log.Fatal("database environment variables are not fully configured")
+	}
+
+	dsn := fmt.Sprintf("host=%v user=%v password=%v dbname=%v port=%v sslmode=disable", dbHost, dbUser, dbPass, dbName, dbPort)
 
 	db, err := gorm.Open(postgres.New(postgres.Config{
 		DSN:                  dsn,
@@ -27,7 +32,7 @@ func SetUpDatebaseConnection() *gorm.DB {
 	}), &gorm.Config{})
 
 	if err != nil {
-		panic(err)
+		log.Fatalf("failed to connect database: %v", err)
 	}
 	return db
 }

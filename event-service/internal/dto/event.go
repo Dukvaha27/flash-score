@@ -11,6 +11,16 @@ type CreateEventRequest struct {
 	Text string `json:"text"`
 }
 
+type UpdateEventRequest struct {
+	EventType string `json:"event_type" binding:"required"`
+	Minute    int    `json:"minute" binding:"required,min=0"`
+
+	TeamID   *uint `json:"team_id"`
+	PlayerID *uint `json:"player_id"`
+
+	Text string `json:"text"`
+}
+
 type EventResponse struct {
 	ID        uint   `json:"id"`
 	MatchID   uint   `json:"match_id"`

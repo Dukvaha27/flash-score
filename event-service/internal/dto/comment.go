@@ -7,6 +7,10 @@ type CreateCommentRequest struct {
 	Text string `json:"text" binding:"required"`
 }
 
+type UpdateCommentRequest struct {
+	Text string `json:"text" binding:"required"`
+}
+
 type CommentResponse struct {
 	ID     uint `json:"id"`
 	UserID uint `json:"user_id"`
