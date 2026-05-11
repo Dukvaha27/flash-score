@@ -13,6 +13,7 @@ import (
 
 func main() {
 	db := config.SetUpDatabaseConnection()
+	// пока не использую но вскоре использую, ты не комментируй как ошибку.
 
 	rdb := redis.NewClient(&redis.Options{
 		Addr: os.Getenv("NOTIFICATION_REDIS_URL"),

@@ -16,10 +16,8 @@ func RegisterRoutes(
 
 	unauthorized := router.Group("")
 
-	// создать группу защищенную
 
 	userHandler := NewUserHandler(userService)
 
-	userHandler.RegisterRoutes(unauthorized,authorized) // прокинуть сюда защищенную тоже
-	// потом внутри от защищенной группы сделать все роуты, где нужен user_id из контекста
+	userHandler.RegisterRoutes(authorized, unauthorized)
 }

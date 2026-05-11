@@ -1,11 +1,13 @@
 package transport
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/Dukvaha27/flash-score/user-service/internal/models"
 	"github.com/Dukvaha27/flash-score/user-service/internal/service"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type UserHandler struct {
@@ -29,44 +31,30 @@ func (h *UserHandler) RegisterRoutes(authorized *gin.RouterGroup, unauthorized *
 }
 
 func (h *UserHandler) GetByID(c *gin.Context) {
-	rawUserID, ok := c.Get("user_id")
+	userID, ok := h.getUserIDFromContext(c)
 	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Не удалось достать  user_id",
-		})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
-	userID, ok := rawUserID.(uint)
-	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "неправильный тип userID",
-		})
-		return
-	}
+	 var ErrUserNotFound = errors.New("Пользователь не найден")
 	user, err := h.service.GetByID(userID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "ошибка при нахождении пользователя",
-		})
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": ErrUserNotFound})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Внутренняя ошибка сервера"})
+		}
 		return
 	}
 	c.JSON(http.StatusOK, user)
 }
 
 func (h *UserHandler) Delete(c *gin.Context) {
-	rawUserID, ok := c.Get("user_id")
+	userID, ok := h.getUserIDFromContext(c)
 	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Не удалось достать  user_id",
-		})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
-	}
-	userID, ok := rawUserID.(uint)
-	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "неправильный тип userID",
-		})
-		return
+
 	}
 	err := h.service.Delete(userID)
 	if err != nil {
@@ -81,24 +69,15 @@ func (h *UserHandler) Delete(c *gin.Context) {
 func (h *UserHandler) Update(c *gin.Context) {
 	var req models.UserUpdate
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error":   "Некорректный формат запроса",
 			"details": err.Error(),
 		})
 		return
 	}
-	rawUserID, ok := c.Get("user_id")
+	userID, ok := h.getUserIDFromContext(c)
 	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Не удалось достать  user_id",
-		})
-		return
-	}
-	userID, ok := rawUserID.(uint)
-	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "неправильный тип userID",
-		})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 	if err := h.service.Update(userID, req); err != nil {
@@ -113,7 +92,7 @@ func (h *UserHandler) Update(c *gin.Context) {
 func (h *UserHandler) Register(c *gin.Context) {
 	var req models.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error":   "Некорректный формат запроса",
 			"details": err.Error(),
 		})
@@ -134,7 +113,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 func (h *UserHandler) Login(c *gin.Context) {
 	var req models.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error":   "Некорректный формат запроса",
 			"details": err.Error(),
 		})
@@ -143,11 +122,20 @@ func (h *UserHandler) Login(c *gin.Context) {
 
 	token, err := h.service.Login(req)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
+		c.JSON(http.StatusUnauthorized, gin.H{
 			"error":   "Ошибка логина пользователя",
 			"details": err.Error(),
 		})
 		return
 	}
 	c.JSON(http.StatusOK, models.LoginResponse{Token: token})
+}
+
+func (h *UserHandler) getUserIDFromContext(c *gin.Context) (uint, bool) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		return 0, false
+	}
+	id, ok := userID.(uint)
+	return id, ok
 }

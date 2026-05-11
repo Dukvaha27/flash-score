@@ -39,7 +39,7 @@ func (r *gormUserRepository) GetByID(userID uint) (*models.User, error) {
 	var user models.User
 	if err := r.db.Where("id = ?", userID).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("Такого пользователя не существует")
+			return nil, gorm.ErrRecordNotFound
 		} else {
 			return nil, err
 		}
@@ -52,9 +52,9 @@ func (r *gormUserRepository) Create(user *models.User) error {
 }
 
 func (r *gormUserRepository) Update(user models.User) error {
-	return r.db.Model(models.User{}).Where("id =?", user.ID).Updates(user).Error
+	return r.db.Model(models.User{}).Where("id = ?", user.ID).Updates(user).Error
 }
 
 func (r *gormUserRepository) Delete(userID uint) error {
-	return r.db.Where("id =?", userID).Delete(&models.User{}).Error
+	return r.db.Where("id = ?", userID).Delete(&models.User{}).Error
 }
