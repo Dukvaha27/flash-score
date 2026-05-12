@@ -11,7 +11,7 @@ func InternalAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userIDStr := c.GetHeader("X-User-ID")
 		if userIDStr == "" {
-			c.JSON(http.StatusBadRequest, gin.H{
+			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": "unauthorized",
 			})
 			c.Abort()

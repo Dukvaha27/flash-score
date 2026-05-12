@@ -3,6 +3,7 @@ package transport
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"os"
@@ -12,7 +13,13 @@ import (
 )
 
 func RegisterProxies(g *gin.Engine) {
-	userServiceURL, err := url.Parse(os.Getenv("GATEWAY_GIN_URL"))
+	urlStr := os.Getenv("GATEWAY_GIN_URL")
+	if urlStr == "" {
+		log.Fatal("GATEWAY_GIN_URL is not set")
+	}
+
+	userServiceURL, err := url.Parse(urlStr)
+
 	if err != nil {
 		log.Fatal("invalid user service URL:", err)
 	}
@@ -30,12 +37,17 @@ func RegisterProxies(g *gin.Engine) {
 	})
 
 	protected := g.Group("")
-	protected.Use(middlewares.AuthMiddleware())
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		log.Fatal("JWT_SECRET is not set")
+		return
+	}
+	protected.Use(middlewares.AuthMiddleware(secret))
 
 	protected.Any("/users/me", func(c *gin.Context) {
 		userID, ok := c.Get("user_id")
 		if !ok {
-			fmt.Println("ошибка получения user_id")
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 			return
 		}
 		c.Request.Header.Set("X-User-ID", fmt.Sprintf("%v", userID))

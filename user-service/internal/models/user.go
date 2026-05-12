@@ -5,7 +5,7 @@ import "gorm.io/gorm"
 type User struct {
 	gorm.Model
 	FullName      string `json:"full_name" gorm:"not null"`
-	Email         string `json:"email" gorm:"not null,uniqueIndex"`
+	Email         string `json:"email" gorm:"not null;uniqueIndex"`
 	FavoriteSport string `json:"favorite_sport"`
 	PasswordHash  string `json:"-"`
 }
@@ -25,7 +25,7 @@ type UserUpdate struct {
 type RegisterRequest struct {
 	FullName string `json:"full_name" binding:"required"`
 	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required"`
+	Password string `json:"password" binding:"required,min=6"`
 }
 
 type LoginRequest struct {

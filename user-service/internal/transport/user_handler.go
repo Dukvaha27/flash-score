@@ -7,7 +7,6 @@ import (
 	"github.com/Dukvaha27/flash-score/user-service/internal/models"
 	"github.com/Dukvaha27/flash-score/user-service/internal/service"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 type UserHandler struct {
@@ -36,16 +35,22 @@ func (h *UserHandler) GetByID(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
-	 var ErrUserNotFound = errors.New("Пользователь не найден")
+
 	user, err := h.service.GetByID(userID)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": ErrUserNotFound})
+		if errors.Is(err, service.ErrUserNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": err.Error(),
+			})
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Внутренняя ошибка сервера"})
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
 		}
+
 		return
 	}
+
 	c.JSON(http.StatusOK, user)
 }
 
@@ -58,9 +63,11 @@ func (h *UserHandler) Delete(c *gin.Context) {
 	}
 	err := h.service.Delete(userID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "ошибка при удалении данных",
-		})
+		if errors.Is(err, service.ErrUserNotFound) { // Проверяем специальную ошибку
+			c.JSON(http.StatusNotFound, gin.H{"error": "Пользователь не найден"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка при удалении"})
+		}
 		return
 	}
 	c.JSON(http.StatusOK, "Пользователь успешно удален")
@@ -107,7 +114,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusCreated, user)
 }
 
 func (h *UserHandler) Login(c *gin.Context) {

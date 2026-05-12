@@ -1,8 +1,6 @@
 package main
 
 import (
-	"context"
-	"fmt"
 	"log"
 	"os"
 
@@ -12,36 +10,24 @@ import (
 	"github.com/Dukvaha27/flash-score/user-service/internal/service"
 	"github.com/Dukvaha27/flash-score/user-service/internal/transport"
 	"github.com/gin-gonic/gin"
-	"github.com/redis/go-redis/v9"
 )
 
 func main() {
 	db := config.SetUpDatabaseConnection()
-
-	rdb := redis.NewClient(&redis.Options{
-		Addr: os.Getenv("GATEWAY_REDIS_URL"),
-	})
-
-	defer rdb.Close()
-
-	ctx := context.Background()
-
-	pong, err := rdb.Ping(ctx).Result()
-
-	if err != nil {
-		log.Fatalf("Не удалось подключиться к Redis: %v", err)
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		log.Fatal("JWT_SECRET is not set")
+		return
 	}
 
-	fmt.Println("Redis подключён", pong)
-
-	if err := db.AutoMigrate(models.User{}); err != nil {
+	if err := db.AutoMigrate(&models.User{}); err != nil {
 		log.Fatalf("не удалось выполнить миграции: %v", err)
 	}
 
 	router := gin.Default()
 	userRepo := repository.NewUserRepository(db)
 
-	userService := service.NewUserService(userRepo)
+	userService := service.NewUserService(userRepo, secret)
 
 	transport.RegisterRoutes(router, userService)
 

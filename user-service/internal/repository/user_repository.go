@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"errors"
-
 	"github.com/Dukvaha27/flash-score/user-service/internal/models"
 	"gorm.io/gorm"
 )
@@ -26,11 +24,7 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 func (r *gormUserRepository) GetByEmail(email string) (*models.User, error) {
 	var user models.User
 	if err := r.db.Where("email = ?", email).First(&user).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("Такого пользователя не существует")
-		} else {
-			return nil, err
-		}
+		return nil, err
 	}
 	return &user, nil
 }
@@ -38,11 +32,7 @@ func (r *gormUserRepository) GetByEmail(email string) (*models.User, error) {
 func (r *gormUserRepository) GetByID(userID uint) (*models.User, error) {
 	var user models.User
 	if err := r.db.Where("id = ?", userID).First(&user).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, gorm.ErrRecordNotFound
-		} else {
-			return nil, err
-		}
+		return nil, err
 	}
 	return &user, nil
 }
@@ -56,5 +46,13 @@ func (r *gormUserRepository) Update(user models.User) error {
 }
 
 func (r *gormUserRepository) Delete(userID uint) error {
-	return r.db.Where("id = ?", userID).Delete(&models.User{}).Error
+	result := r.db.Where("id = ?", userID).Delete(&models.User{})
+	if result.Error != nil {
+		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
 }

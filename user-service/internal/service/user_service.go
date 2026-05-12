@@ -1,14 +1,18 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/Dukvaha27/flash-score/user-service/internal/auth"
 	"github.com/Dukvaha27/flash-score/user-service/internal/models"
+	"gorm.io/gorm"
 
 	"github.com/Dukvaha27/flash-score/user-service/internal/repository"
 	"golang.org/x/crypto/bcrypt"
 )
+
+var ErrUserNotFound = errors.New("user not found")
 
 type UserService interface {
 	Login(req models.LoginRequest) (string, error)
@@ -20,23 +24,43 @@ type UserService interface {
 
 type userService struct {
 	userRepo repository.UserRepository
+	secret   string
 }
 
-func NewUserService(userRepo repository.UserRepository) UserService {
-	return &userService{userRepo: userRepo}
+func NewUserService(userRepo repository.UserRepository, secret string) UserService {
+	return &userService{userRepo: userRepo, secret: secret}
 }
 
 func (s *userService) GetByID(userID uint) (*models.User, error) {
-	return s.userRepo.GetByID(userID)
+	user, err := s.userRepo.GetByID(userID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrUserNotFound
+		}
+
+		return nil, err
+	}
+
+	return user, nil
 }
 
 func (s *userService) Delete(userID uint) error {
-	return s.userRepo.Delete(userID)
+	err := s.userRepo.Delete(userID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return ErrUserNotFound
+		}
+		return nil
+	}
+	return nil
 }
 
 func (s *userService) Update(userID uint, req models.UserUpdate) error {
 	user, err := s.userRepo.GetByID(userID)
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return ErrUserNotFound
+		}
 		return err
 	}
 	if req.Email != nil {
@@ -81,14 +105,17 @@ func (s *userService) Register(req models.RegisterRequest) (*models.User, error)
 func (s *userService) Login(req models.LoginRequest) (string, error) {
 	user, err := s.userRepo.GetByEmail(req.Email)
 	if err != nil {
-		return "", fmt.Errorf("Неверный email или пароль")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return "", errors.New("Неверный email или пароль")
+		}
+		return "", fmt.Errorf("ошибка при поиске пользователя: %w", err)
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
-		return "", fmt.Errorf("Неверный email или пароль")
+		return "", errors.New("Неверный email или пароль")
 	}
 
-	token, err := auth.GenerateToken(user.ID)
+	token, err := auth.GenerateToken(user.ID, s.secret)
 	if err != nil {
 		return "", fmt.Errorf("Ошибка генерации токена: %w", err)
 	}
