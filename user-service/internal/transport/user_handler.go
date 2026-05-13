@@ -84,11 +84,15 @@ func (h *UserHandler) Update(c *gin.Context) {
 	}
 	userID, ok := h.getUserIDFromContext(c)
 	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Не авторизован"})
 		return
 	}
 	if err := h.service.Update(userID, req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
+		if errors.Is(err, service.ErrUserNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Пользователь не найден"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "ошибка при обновлении данных",
 		})
 		return
