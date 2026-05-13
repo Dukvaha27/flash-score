@@ -50,7 +50,7 @@ func (s *userService) Delete(userID uint) error {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return ErrUserNotFound
 		}
-		return nil
+		return err
 	}
 	return nil
 }
