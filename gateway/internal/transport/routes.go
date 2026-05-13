@@ -40,7 +40,6 @@ func RegisterProxies(g *gin.Engine) {
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
 		log.Fatal("JWT_SECRET is not set")
-		return
 	}
 	protected.Use(middlewares.AuthMiddleware(secret))
 
