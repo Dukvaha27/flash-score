@@ -77,7 +77,12 @@ func (s *userService) Update(userID uint, req models.UserUpdate) error {
 	}
 
 	if err := s.userRepo.Update(*user); err != nil {
+
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return ErrUserNotFound
+		}
 		return err
+
 	}
 
 	return nil

@@ -9,6 +9,7 @@ type NotificationRepository interface {
 	Create(notification models.Notification) error
 	UpdateStatus(notificationID uint, status bool) error
 	GetByID(notificationID uint) (models.Notification, error)
+	Delete(notificationID uint) error
 }
 
 type gormNotificationRepository struct {
@@ -20,7 +21,7 @@ func NewNotificationRepository(db *gorm.DB) NotificationRepository {
 }
 
 func (r *gormNotificationRepository) Create(notification models.Notification) error {
-	return r.db.Model(&models.Notification{}).Create(&notification).Error
+	return r.db.Create(&notification).Error
 }
 
 func (r *gormNotificationRepository) UpdateStatus(notificationID uint, status bool) error {
@@ -29,10 +30,10 @@ func (r *gormNotificationRepository) UpdateStatus(notificationID uint, status bo
 
 func (r *gormNotificationRepository) GetByID(notificationID uint) (models.Notification, error) {
 	var notification models.Notification
-	err := r.db.Model(models.Notification{}).Where("id = ?", notificationID).First(&notification).Error
+	err := r.db.Where("id = ?", notificationID).First(&notification).Error
 	return notification, err
 }
 
 func (r *gormNotificationRepository) Delete(notificationID uint) error {
-	return r.db.Model(models.Notification{}).Where("id = ?", notificationID).Delete(&models.Notification{}).Error
+	return r.db.Where("id = ?", notificationID).Delete(&models.Notification{}).Error
 }
