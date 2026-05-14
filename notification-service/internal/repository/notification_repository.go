@@ -6,6 +6,7 @@ import (
 )
 
 type NotificationRepository interface {
+	GetUnreadCount(userID uint) (int64, error)
 	Create(notification models.Notification) error
 	UpdateStatus(notificationID uint, status bool) error
 	GetByID(notificationID uint) (models.Notification, error)
@@ -18,6 +19,12 @@ type gormNotificationRepository struct {
 
 func NewNotificationRepository(db *gorm.DB) NotificationRepository {
 	return &gormNotificationRepository{db: db}
+}
+
+func (r *gormNotificationRepository) GetUnreadCount(userID uint) (int64, error) {
+	var count int64
+	err := r.db.Model(&models.Notification{}).Where("user_id = ? and is_read = ?", userID, false).Count(&count).Error
+	return count, err
 }
 
 func (r *gormNotificationRepository) Create(notification models.Notification) error {

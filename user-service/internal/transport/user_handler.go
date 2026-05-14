@@ -63,7 +63,7 @@ func (h *UserHandler) Delete(c *gin.Context) {
 	}
 	err := h.service.Delete(userID)
 	if err != nil {
-		if errors.Is(err, service.ErrUserNotFound) { // Проверяем специальную ошибку
+		if errors.Is(err, service.ErrUserNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Пользователь не найден"})
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка при удалении"})
