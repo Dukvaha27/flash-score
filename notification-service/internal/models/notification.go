@@ -10,3 +10,7 @@ type Notification struct {
 	Message string `json:"message"`
 	IsRead  bool   `json:"is_read"`
 }
+
+type NotificationCreate struct {
+	Message string `json:"message" binding:"required"`
+}

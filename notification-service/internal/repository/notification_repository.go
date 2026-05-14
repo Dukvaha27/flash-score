@@ -1,16 +1,18 @@
 package repository
 
 import (
+	 "github.com/Dukvaha27/flash-score/notification-service/internal/errors"
 	"github.com/Dukvaha27/flash-score/notification-service/internal/models"
 	"gorm.io/gorm"
 )
 
+
 type NotificationRepository interface {
 	GetUnreadCount(userID uint) (int64, error)
-	Create(notification models.Notification) error
-	UpdateStatus(notificationID uint, status bool) error
-	GetByID(notificationID uint) (models.Notification, error)
-	Delete(notificationID uint) error
+	Create(notification *models.Notification) error
+	MarkAsRead(notificationID, userID uint) error
+	GetByID(notificationID, userID uint) (models.Notification, error)
+	Delete(notificationID, userID uint) error
 }
 
 type gormNotificationRepository struct {
@@ -27,20 +29,37 @@ func (r *gormNotificationRepository) GetUnreadCount(userID uint) (int64, error) 
 	return count, err
 }
 
-func (r *gormNotificationRepository) Create(notification models.Notification) error {
+func (r *gormNotificationRepository) Create(notification *models.Notification) error {
 	return r.db.Create(&notification).Error
 }
 
-func (r *gormNotificationRepository) UpdateStatus(notificationID uint, status bool) error {
-	return r.db.Model(&models.Notification{}).Where("id = ?", notificationID).Update("is_read", status).Error
+func (r *gormNotificationRepository) MarkAsRead(notificationID, userID uint) error {
+	result := r.db.Model(&models.Notification{}).Where("id = ? and user_id = ?", notificationID, userID).Update("is_read", true)
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return errors.ErrNotificationNotFound
+	}
+
+	return nil
 }
 
-func (r *gormNotificationRepository) GetByID(notificationID uint) (models.Notification, error) {
+func (r *gormNotificationRepository) GetByID(notificationID, userID uint) (models.Notification, error) {
 	var notification models.Notification
-	err := r.db.Where("id = ?", notificationID).First(&notification).Error
+	err := r.db.Where("id = ? and user_id = ?", notificationID, userID).First(&notification).Error
 	return notification, err
 }
 
-func (r *gormNotificationRepository) Delete(notificationID uint) error {
-	return r.db.Where("id = ?", notificationID).Delete(&models.Notification{}).Error
+func (r *gormNotificationRepository) Delete(notificationID, userID uint) error {
+	result := r.db.Where("id = ? and user_id = ?", notificationID, userID).Delete(&models.Notification{})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return errors.ErrNotificationNotFound
+	}
+	return nil
 }
