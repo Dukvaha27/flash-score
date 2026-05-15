@@ -1,25 +1,31 @@
 package models
 
 import (
-	"errors"
+	"time"
 
-	"gorm.io/gorm"
+	"github.com/Dukvaha27/flash-score/notification-service/internal/errors"
 )
 
 type Subscription struct {
-	gorm.Model
-	UserID  uint  `json:"user_id" gorm:"not null;uniqueIndex:idx_user_team;uniqueIndex:idx_user_sport"`
-	TeamID  *uint `json:"team_id,omitempty" gorm:"index;uniqueIndex:idx_user_team"`
-	SportID *uint `json:"sport_id,omitempty" gorm:"index;uniqueIndex:idx_user_sport"`
+	ID        uint
+	CreatedAt time.Time
+	UserID    uint  `json:"user_id" gorm:"not null;uniqueIndex:idx_user_team;uniqueIndex:idx_user_sport"`
+	TeamID    *uint `json:"team_id,omitempty" gorm:"uniqueIndex:idx_user_team"`
+	SportID   *uint `json:"sport_id,omitempty" gorm:"uniqueIndex:idx_user_sport"`
 }
 
-func (s *Subscription) Validate() error {
+type SubscriptionCreate struct {
+	TeamID  *uint `json:"team_id,omitempty"`
+	SportID *uint `json:"sport_id,omitempty"`
+}
+
+func (s *SubscriptionCreate) Validate() error {
 	if s.TeamID == nil && s.SportID == nil {
-		return errors.New("Необходимо указать объект подписки")
+		return errors.ErrSubscriptionTargetRequired
 	}
 
 	if s.TeamID != nil && s.SportID != nil {
-		return errors.New("Подписка может содержать лишь один объект")
+		return errors.ErrTeamOrSportRequired
 	}
 
 	return nil

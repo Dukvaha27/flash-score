@@ -42,7 +42,7 @@ func (r *gormUserRepository) Create(user *models.User) error {
 }
 
 func (r *gormUserRepository) Update(user models.User) error {
-	return r.db.Model(&models.User{}).Where("id = ?", user.ID).Updates(user).Error
+	return r.db.Save(&user).Error
 }
 
 func (r *gormUserRepository) Delete(userID uint) error {

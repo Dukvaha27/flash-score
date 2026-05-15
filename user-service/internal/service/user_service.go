@@ -64,7 +64,6 @@ func (s *userService) Update(userID uint, req models.UserUpdate) error {
 		return err
 	}
 	if req.Email != nil {
-
 		user.Email = *req.Email
 	}
 

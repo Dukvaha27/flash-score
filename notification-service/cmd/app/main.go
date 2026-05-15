@@ -10,7 +10,7 @@ import (
 
 func main() {
 	db := config.SetUpDatabaseConnection()
-	if err := db.AutoMigrate(&models.Notification{}); err != nil {
+	if err := db.AutoMigrate(&models.Notification{}, &models.Subscription{}); err != nil {
 		log.Fatalf("не удалось выполнить миграции: %v", err)
 	}
 
