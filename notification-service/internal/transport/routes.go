@@ -5,15 +5,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterRoutes(router *gin.Engine, subscriptionHandler *SubscriptionHandler) {
+func RegisterRoutes(router *gin.Engine, notificationHandler *NotificationHandler, subscriptionHandler *SubscriptionHandler) {
 	notification := router.Group("/notification")
 	notification.Use(middleware.InternalAuthMiddleware())
 	{
-		notification.GET("/unread")
-		notification.GET("/:notificationID")
-		notification.PATCH("/:notificationID")
-		notification.DELETE("/:notificationID")
-		notification.POST("")
+		notification.GET("/unread", notificationHandler.GetUnreadCount)
+		notification.GET("/:notificationID", notificationHandler.GetByID)
+		notification.PATCH("/:notificationID", notificationHandler.MarkAsRead)
+		notification.DELETE("/:notificationID", notificationHandler.Delete)
+		notification.POST("", notificationHandler.Create)
 	}
 
 	subscription := router.Group("/subscription")

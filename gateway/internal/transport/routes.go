@@ -3,6 +3,7 @@ package transport
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"os"
@@ -43,7 +44,11 @@ func RegisterProxies(g *gin.Engine) {
 	protected.Use(middlewares.AuthMiddleware(secret))
 
 	protected.Any("/users/me", func(c *gin.Context) {
-		userID, _ := c.Get("user_id")
+		userID, ok := c.Get("user_id")
+		if !ok {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+			return
+		}
 		c.Request.Header.Set("X-User-ID", fmt.Sprintf("%v", userID))
 		userProxy.ServeHTTP(c.Writer, c.Request)
 	})

@@ -19,11 +19,15 @@ func main() {
 
 	router := gin.Default()
 
+	notificationRepo := repository.NewNotificationRepository(db)
+	notificationService := service.NewNotificationService(notificationRepo)
+	notificationHandler := transport.NewNotificationHandler(notificationService)
+
 	subscriptionRepo := repository.NewSubscriptionRepository(db)
 	subscriptionService := service.NewSubscriptionService(subscriptionRepo)
 	subscriptionHandler := transport.NewSubscriptionHandler(subscriptionService)
 
-	transport.RegisterRoutes(router, subscriptionHandler)
+	transport.RegisterRoutes(router, notificationHandler, subscriptionHandler)
 
 	if err := router.Run(); err != nil {
 		log.Fatalf("не удалось запустить HTTP-сервер: %v", err)
