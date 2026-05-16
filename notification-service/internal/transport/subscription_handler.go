@@ -22,10 +22,10 @@ func NewSubscriptionHandler(service service.SubscriptionService) *SubscriptionHa
 func (h *SubscriptionHandler) Unsubscribe(c *gin.Context) {
 	subscriptionID, err := strconv.Atoi(c.Param("subscriptionID"))
 	if err != nil || subscriptionID <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "неправильный тип подписки"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": myErrors.ErrInvalidType.Error()})
 		return
 	}
-	userID, ok := h.getUserIDFromContext(c)
+	userID, ok := getUserIDFromContext(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": myErrors.ErrUnauthorized.Error()})
 		return
@@ -49,7 +49,7 @@ func (h *SubscriptionHandler) Subscribe(c *gin.Context) {
 		})
 		return
 	}
-	userID, ok := h.getUserIDFromContext(c)
+	userID, ok := getUserIDFromContext(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": myErrors.ErrUnauthorized.Error()})
 		return
@@ -69,13 +69,4 @@ func (h *SubscriptionHandler) Subscribe(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusCreated, "Подписка создана")
-}
-
-func (h *SubscriptionHandler) getUserIDFromContext(c *gin.Context) (uint, bool) {
-	userID, exists := c.Get("user_id")
-	if !exists {
-		return 0, false
-	}
-	id, ok := userID.(uint)
-	return id, ok
 }
