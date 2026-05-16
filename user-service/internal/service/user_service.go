@@ -63,6 +63,10 @@ func (s *userService) Update(userID uint, req models.UserUpdate) error {
 		}
 		return err
 	}
+
+	if req.Role != nil {
+		user.Role = *req.Role
+	}
 	if req.Email != nil {
 		user.Email = *req.Email
 	}
@@ -91,17 +95,18 @@ func (s *userService) Update(userID uint, req models.UserUpdate) error {
 func (s *userService) Register(req models.RegisterRequest) (*models.User, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, fmt.Errorf("Ошибка хеширования пароля: %w", err)
+		return nil, fmt.Errorf("ошибка хеширования пароля: %w", err)
 	}
 
 	user := models.User{
 		FullName:     req.FullName,
 		Email:        req.Email,
 		PasswordHash: string(hash),
+		Role: req.Role,
 	}
 
 	if err := s.userRepo.Create(&user); err != nil {
-		return nil, fmt.Errorf("Ошибка создания пользователя: %w", err)
+		return nil, fmt.Errorf("ошибка создания пользователя: %w", err)
 	}
 	return &user, nil
 }
@@ -110,18 +115,18 @@ func (s *userService) Login(req models.LoginRequest) (string, error) {
 	user, err := s.userRepo.GetByEmail(req.Email)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return "", errors.New("Неверный email или пароль")
+			return "", errors.New("неверный email или пароль")
 		}
 		return "", fmt.Errorf("ошибка при поиске пользователя: %w", err)
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
-		return "", errors.New("Неверный email или пароль")
+		return "", errors.New("неверный email или пароль")
 	}
 
 	token, err := auth.GenerateToken(user.ID, s.secret)
 	if err != nil {
-		return "", fmt.Errorf("Ошибка генерации токена: %w", err)
+		return "", fmt.Errorf("ошибка генерации токена: %w", err)
 	}
 
 	return token, nil

@@ -10,8 +10,6 @@ import (
 type SubscriptionRepository interface {
 	Subscribe(subscription models.Subscription) error
 	Unsubscribe(subscriptionID, userID uint) error
-	GetSubscriberIDsByTeam(teamID uint) ([]uint, error)
-	GetSubscriberIDsBySport(sportID uint) ([]uint, error)
 }
 
 type gormSubscriptionRepository struct {
@@ -42,16 +40,4 @@ func (r *gormSubscriptionRepository) Unsubscribe(subscriptionID, userID uint) er
 		return errors.ErrSubscriptionNotFound
 	}
 	return nil
-}
-
-func (r *gormSubscriptionRepository) GetSubscriberIDsByTeam(teamID uint) ([]uint, error) {
-	var userIDs []uint
-	err := r.db.Model(&models.Subscription{}).Where("team_id = ?", teamID).Pluck("user_id", &userIDs).Error
-	return userIDs, err
-}
-
-func (r *gormSubscriptionRepository) GetSubscriberIDsBySport(sportID uint) ([]uint, error) {
-	var userIDs []uint
-	err := r.db.Model(&models.Subscription{}).Where("sport_id = ?", sportID).Pluck("user_id", &userIDs).Error
-	return userIDs, err
 }

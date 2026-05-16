@@ -1,0 +1,51 @@
+GetSubscriberIDsByTeam(teamID uint) ([]uint, error)
+GetSubscriberIDsBySport(sportID uint) ([]uint, error)
+
+func (r *gormSubscriptionRepository) GetSubscriberIDsByTeam(teamID uint) ([]uint, error) {
+	var userIDs []uint
+	err := r.db.Model(&models.Subscription{}).Where("team_id = ?", teamID).Pluck("user_id", &userIDs).Error
+	return userIDs, err
+}
+
+func (r *gormSubscriptionRepository) GetSubscriberIDsBySport(sportID uint) ([]uint, error) {
+	var userIDs []uint
+	err := r.db.Model(&models.Subscription{}).Where("sport_id = ?", sportID).Pluck("user_id", &userIDs).Error
+	return userIDs, err
+}
+
+	GetSubscriberIDsByTeam(teamID uint) ([]uint, error)
+	GetSubscriberIDsBySport(sportID uint) ([]uint, error)
+
+func (s *subscriptionService) GetSubscriberIDsBySport(sportID uint) ([]uint, error) {
+	userIDs, err := s.subscriptionRepo.GetSubscriberIDsBySport(sportID)
+	if err != nil {
+		return nil, err
+	}
+
+	return userIDs, nil
+}
+
+func (s *subscriptionService) GetSubscriberIDsByTeam(teamID uint) ([]uint, error) {
+	userIDs, err := s.subscriptionRepo.GetSubscriberIDsByTeam(teamID)
+	if err != nil {
+		return nil, err
+	}
+
+	return userIDs, nil
+}
+
+
+func (h *SubscriptionHandler) GetSubscriberIDsByTeam(c *gin.Context) {
+	c.
+	h.service.GetSubscriberIDsByTeam()
+}
+
+
+
+type GetSubscriptionByTeamID struct {
+	TeamID *uint `json:"team_id" binding:"required"`
+}
+
+type GetSubscriptionBySportID struct {
+	SportID *uint `json:"sport_id" binding:"required"`
+}

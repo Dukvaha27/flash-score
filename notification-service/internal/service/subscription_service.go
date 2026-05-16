@@ -8,8 +8,6 @@ import (
 type SubscriptionService interface {
 	Subscribe(req models.SubscriptionCreate, userID uint) error
 	Unsubscribe(subscriptionID, userID uint) error
-	GetSubscriberIDsByTeam(teamID uint) ([]uint, error)
-	GetSubscriberIDsBySport(sportID uint) ([]uint, error)
 }
 
 type subscriptionService struct {
@@ -18,24 +16,6 @@ type subscriptionService struct {
 
 func NewSubscriptionService(subscriptionRepo repository.SubscriptionRepository) SubscriptionService {
 	return &subscriptionService{subscriptionRepo: subscriptionRepo}
-}
-
-func (s *subscriptionService) GetSubscriberIDsBySport(sportID uint) ([]uint, error) {
-	userIDs, err := s.subscriptionRepo.GetSubscriberIDsBySport(sportID)
-	if err != nil {
-		return nil, err
-	}
-
-	return userIDs, nil
-}
-
-func (s *subscriptionService) GetSubscriberIDsByTeam(teamID uint) ([]uint, error) {
-	userIDs, err := s.subscriptionRepo.GetSubscriberIDsByTeam(teamID)
-	if err != nil {
-		return nil, err
-	}
-
-	return userIDs, nil
 }
 
 func (s *subscriptionService) Subscribe(req models.SubscriptionCreate, userID uint) error {
